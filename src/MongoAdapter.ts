@@ -92,9 +92,10 @@ class MongoContext implements Context {
     }
 
     addFunctionTask(txnMngr: MultiTxnMngr,
-        execFunc: (mongoose: Mongoose, txn: ClientSession, task: Task) => Promise<any>) {
+        execFunc: (mongoose: Mongoose, txn: ClientSession, task: Task) => Promise<any>) : Task {
         const task = new MongoTask(this, execFunc);
         txnMngr.addTask(task);
+        return task;
     }
 }
 

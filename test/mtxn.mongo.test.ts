@@ -53,10 +53,10 @@ describe("Multiple transaction manager Mongo workflow test...", () => {
         // mongoContext.addFunctionTask(txnMngr, (mongoose, txn, task) => studentModel.create([{ sid: 2, "name": "Bob" }], { session: txn }));
 
         // Add control step
-        mongoContext.addFunctionTask(txnMngr, (mongoose, txn, task) => studentModel.findOne({ sid: 1 }).session(txn).exec());
+        let controlTask = mongoContext.addFunctionTask(txnMngr, (mongoose, txn, task) => studentModel.findOne({ sid: 1 }).session(txn).exec());
 
-        const tasks: Task[] = await txnMngr.exec();
-        expect(tasks[2].getResult().sid).toEqual(1);
+        await txnMngr.exec();
+        expect(controlTask.getResult().name).toEqual("Kevin");
 
     });
 
