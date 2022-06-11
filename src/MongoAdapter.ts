@@ -44,6 +44,7 @@ class MongoContext implements Context {
             } else {
                 this.txn?.commitTransaction().then(ret => {
                     this.txn?.endSession().then((value) => {
+                        this.logger.debug(this.getName() + " is committed.");
                         resolve(this);
                     }).catch((err) => {
                         reject(err);
@@ -64,6 +65,7 @@ class MongoContext implements Context {
             } else {
                 this.txn?.abortTransaction().then((ret) => {
                     this.txn?.endSession().then((value) => {
+                        this.logger.debug(this.getName() + " is rollbacked.");
                         resolve(this);
                     }).catch((err) => {
                         reject(err);
@@ -82,7 +84,7 @@ class MongoContext implements Context {
     }
 
     getName(): string {
-        return "Redis Context: " + this.contextId;
+        return "MongoDB Context: " + this.contextId;
     }
 
     getTransaction(): ClientSession {
