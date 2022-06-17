@@ -26,7 +26,7 @@
   "dependencies": {
     "@log4js-node/log4js-api": "1.0.2",
     "multiple-transaction-manager": "file:../mtxn/dist/multiple-transaction-manager-1.0.1.tgz",
-    "mongoose": "6.3.5",
+    "mongoose": "^6.3.5",
     "uuid": "8.3.2",
     "@types/uuid": "8.3.4"
   },
