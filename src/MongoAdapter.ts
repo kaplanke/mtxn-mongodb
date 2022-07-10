@@ -37,13 +37,13 @@ class MongoContext implements Context {
         });
     }
 
-    commit(txnMngr: MultiTxnMngr): Promise<Context> {
+    commit(_txnMngr: MultiTxnMngr): Promise<Context> {
         return new Promise((resolve, reject) => {
             if (!this.isInitialized()) {
                 reject("Cannot commit. Context not initialised.");
             } else {
-                this.txn?.commitTransaction().then(ret => {
-                    this.txn?.endSession().then((value) => {
+                this.txn?.commitTransaction().then(_ret => {
+                    this.txn?.endSession().then((_value) => {
                         this.logger.debug(this.getName() + " is committed.");
                         resolve(this);
                     }).catch((err) => {
@@ -63,8 +63,8 @@ class MongoContext implements Context {
             if (!this.isInitialized()) {
                 reject("Cannot rollback. Context not initialised.");
             } else {
-                this.txn?.abortTransaction().then((ret) => {
-                    this.txn?.endSession().then((value) => {
+                this.txn?.abortTransaction().then((_ret) => {
+                    this.txn?.endSession().then((_value) => {
                         this.logger.debug(this.getName() + " is rollbacked.");
                         resolve(this);
                     }).catch((err) => {
@@ -94,7 +94,7 @@ class MongoContext implements Context {
     }
 
     addFunctionTask(txnMngr: MultiTxnMngr,
-        execFunc: (mongoose: Mongoose, txn: ClientSession, task: Task) => Promise<any>) : Task {
+        execFunc: (mongoose: Mongoose, txn: ClientSession, task: Task) => Promise<unknown>) : Task {
         const task = new MongoTask(this, execFunc);
         txnMngr.addTask(task);
         return task;
@@ -104,11 +104,11 @@ class MongoContext implements Context {
 class MongoTask implements Task {
 
     context: MongoContext;
-    rs: any | undefined;
-    execFunc: (mongoose: Mongoose, txn: ClientSession, task: Task) => Promise<any>;
+    rs: unknown | undefined;
+    execFunc: (mongoose: Mongoose, txn: ClientSession, task: Task) => Promise<unknown>;
 
     constructor(context: MongoContext,
-        execFunc: (mongoose: Mongoose, txn: ClientSession, task: Task) => Promise<any>) {
+        execFunc: (mongoose: Mongoose, txn: ClientSession, task: Task) => Promise<unknown>) {
         this.context = context;
         this.execFunc = execFunc;
     }
@@ -128,14 +128,10 @@ class MongoTask implements Task {
         });
     }
 
-    getResult(): any | undefined {
+    getResult(): unknown | undefined {
         return this.rs;
     }
 
-    params: any;
-    setParams(params: object) {
-        throw new Error("Method not implemented.");
-    }
 }
 
 export { MongoContext, MongoTask };
