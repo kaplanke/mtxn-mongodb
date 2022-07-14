@@ -36,22 +36,22 @@ describe("Multiple transaction manager Mongo workflow test...", () => {
     });
 
     test("Function task example", async () => {
-        // init manager
+        
+        // init manager & context
         const txnMngr: MultiTxnMngr = new MultiTxnMngr();
-
-        const mongoContext = new MongoContext(theMongoose);
+        const mongoContext = new MongoContext(txnMngr, theMongoose);
 
         // Add first step
-        mongoContext.addFunctionTask(txnMngr, (_mongoose, txn, _task) => studentModel.create([{ sid: 1, "name": "Kevin" }], { session: txn }));
+        mongoContext.addFunctionTask((_mongoose, txn, _task) => studentModel.create([{ sid: 1, "name": "Kevin" }], { session: txn }));
 
         // Add second step
-        mongoContext.addFunctionTask(txnMngr, (_mongoose, txn, _task) => studentModel.create([{ sid: 2, "name": "Stuart" }], { session: txn }));
+        mongoContext.addFunctionTask((_mongoose, txn, _task) => studentModel.create([{ sid: 2, "name": "Stuart" }], { session: txn }));
 
         // Uncomment next line if you want to test rollback scenario 
         // mongoContext.addFunctionTask(txnMngr, (mongoose, txn, task) => studentModel.create([{ sid: 2, "name": "Bob" }], { session: txn }));
 
         // Add control step
-        const controlTask = mongoContext.addFunctionTask(txnMngr, (_mongoose, txn, _task) => studentModel.findOne({ sid: 1 }).session(txn).exec());
+        const controlTask = mongoContext.addFunctionTask((_mongoose, txn, _task) => studentModel.findOne({ sid: 1 }).session(txn).exec());
 
         await txnMngr.exec();
         expect(controlTask.getResult().name).toEqual("Kevin");

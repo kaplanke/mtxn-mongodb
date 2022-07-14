@@ -5,13 +5,15 @@ import { v1 } from "uuid";
 
 class MongoContext implements Context {
 
+    txnMngr: MultiTxnMngr;
     mongoose: Mongoose;
     clientSessionOptions: ClientSessionOptions | undefined;
     txn: ClientSession | undefined = undefined;
     contextId: string;
     logger = log4js.getLogger("MultiTxnMngr");
 
-    constructor(mongoose: Mongoose, options?: ClientSessionOptions) {
+    constructor(txnMngr: MultiTxnMngr, mongoose: Mongoose, options?: ClientSessionOptions) {
+        this.txnMngr = txnMngr;
         this.mongoose = mongoose;
         this.clientSessionOptions = options;
         this.contextId = v1();
@@ -37,7 +39,7 @@ class MongoContext implements Context {
         });
     }
 
-    commit(_txnMngr: MultiTxnMngr): Promise<Context> {
+    commit(): Promise<Context> {
         return new Promise((resolve, reject) => {
             if (!this.isInitialized()) {
                 reject("Cannot commit. Context not initialised.");
@@ -67,12 +69,12 @@ class MongoContext implements Context {
                     this.txn?.endSession().then((_value) => {
                         this.logger.debug(this.getName() + " is rollbacked.");
                         resolve(this);
-                    }).catch((err) => {
+                    }).catch((err: unknown) => {
                         reject(err);
                     }).finally(() => {
                         this.txn = undefined;
                     });
-                }).catch((err) => {
+                }).catch((err: unknown) => {
                     reject(err);
                 });
             }
@@ -93,10 +95,9 @@ class MongoContext implements Context {
         return this.txn;
     }
 
-    addFunctionTask(txnMngr: MultiTxnMngr,
-        execFunc: (mongoose: Mongoose, txn: ClientSession, task: Task) => Promise<unknown>) : Task {
+    addFunctionTask(execFunc: (mongoose: Mongoose, txn: ClientSession, task: Task) => Promise<unknown>) : Task {
         const task = new MongoTask(this, execFunc);
-        txnMngr.addTask(task);
+        this.txnMngr.addTask(task);
         return task;
     }
 }
@@ -128,7 +129,7 @@ class MongoTask implements Task {
         });
     }
 
-    getResult(): unknown | undefined {
+    getResult() {
         return this.rs;
     }
 
